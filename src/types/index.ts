@@ -10,6 +10,11 @@ export interface AIModel {
     context_window: number;
     max_output_tokens?: number;
     is_active: boolean;
+    is_chat?: boolean;
+    rpm?: number;
+    tpm?: number;
+    rpd?: number;
+    capabilities?: string[];
 }
 
 export interface ScoreBreakdown {

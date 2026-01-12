@@ -70,9 +70,50 @@ export const ModelCard: React.FC<ModelCardProps> = ({ model, isSelected, onToggl
                 <Badge variant={isSmart ? "default" : isFast ? "success" : "secondary"}>
                     {model.category}
                 </Badge>
-                <Badge variant="outline" className="border-white/10 text-slate-300">
-                    {model.context_window / 1000}k Context
-                </Badge>
+
+                {/* Capabilities */}
+                {model.capabilities && model.capabilities.length > 0 ? (
+                    model.capabilities.map(cap => (
+                        <Badge key={cap} variant="outline" className={cn(
+                            "border-opacity-30",
+                            cap === "Chat" ? "border-blue-500 text-blue-400 bg-blue-500/10" :
+                                cap === "Vision" ? "border-purple-500 text-purple-400 bg-purple-500/10" :
+                                    cap === "Embedding" ? "border-amber-500 text-amber-400 bg-amber-500/10" :
+                                        cap === "Audio" ? "border-pink-500 text-pink-400 bg-pink-500/10" :
+                                            cap === "Image" ? "border-cyan-500 text-cyan-400 bg-cyan-500/10" :
+                                                "border-slate-500 text-slate-400"
+                        )}>
+                            {cap.toUpperCase()}
+                        </Badge>
+                    ))
+                ) : (
+                    model.is_chat === false && (
+                        <Badge variant="secondary" className="bg-orange-500/20 text-orange-400 border-orange-500/30">
+                            NOT FOR CHAT
+                        </Badge>
+                    )
+                )}
+
+                {/* Rate Limits */}
+                {(model.rpm || model.tpm) && (
+                    <div className="flex gap-2 w-full pt-2 border-t border-white/5 mt-2 overflow-x-auto custom-scrollbar pb-1">
+                        {model.rpm && (
+                            <Badge variant="secondary" className="bg-slate-800 text-slate-400 text-[10px] whitespace-nowrap border-slate-700">
+                                {model.rpm} RPM
+                            </Badge>
+                        )}
+                        {model.tpm && (
+                            <Badge variant="secondary" className="bg-slate-800 text-slate-400 text-[10px] whitespace-nowrap border-slate-700">
+                                {model.tpm >= 1000 ? `${model.tpm / 1000}k` : model.tpm} TPM
+                            </Badge>
+                        )}
+                        {model.rpd && (
+                            <Badge variant="secondary" className="bg-slate-800 text-slate-400 text-[10px] whitespace-nowrap border-slate-700">
+                                {model.rpd >= 1000 ? `${model.rpd / 1000}k` : model.rpd} RPD
+                            </Badge>
+                        )}
+                    </div>
+                )}
             </div>
         </motion.div>
     );

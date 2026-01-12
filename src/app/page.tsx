@@ -3,18 +3,19 @@
 import { useEffect, useState } from "react";
 import { AIModel } from "@/types";
 import { ModelCard } from "@/components/ModelCard";
-import { ArenaView } from "@/components/ArenaView";
 import { OnboardingView } from "@/components/OnboardingView";
+import { ChatModal } from "@/components/ChatModal";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
-import { Play, Swords } from "lucide-react";
+import { Play, Swords, ArrowRight } from "lucide-react";
 
 export default function Home() {
   const [models, setModels] = useState<AIModel[]>([]);
   const [selectedModels, setSelectedModels] = useState<Set<string>>(new Set());
+  const [activeModel, setActiveModel] = useState<AIModel | null>(null);
   const [loading, setLoading] = useState(false); // Do not load initially
   const [question, setQuestion] = useState("");
-  const [stage, setStage] = useState<"auth" | "discovery" | "arena">("auth");
+  const [stage, setStage] = useState<"auth" | "discovery">("auth");
   const [apiKey, setApiKey] = useState("");
   const [provider, setProvider] = useState("OpenAI");
 
@@ -51,31 +52,11 @@ export default function Home() {
     setSelectedModels(next);
   };
 
-  const startRound = () => {
-    if (selectedModels.size > 0 && question.trim()) {
-      setStage("arena");
-      console.log("Starting round with:", Array.from(selectedModels));
-    }
-  };
-
   if (stage === "auth") {
     return (
       <main className="min-h-screen p-8 max-w-7xl mx-auto flex items-center justify-center">
         <OnboardingView onConnect={handleConnect} />
       </main>
-    );
-  }
-
-  if (stage === "arena") {
-    const selectedList = models.filter(m => selectedModels.has(m.id));
-    return (
-      <ArenaView
-        question={question}
-        models={selectedList}
-        onBack={() => setStage("discovery")}
-        apiKey={apiKey}
-        provider={provider}
-      />
     );
   }
 
@@ -88,15 +69,14 @@ export default function Home() {
         className="mb-12 text-center"
       >
         <div className="inline-block p-1 px-3 mb-4 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-medium">
-          Live Multi-Model Evaluation
+          Provider: {provider}
         </div>
         <h1 className="text-6xl font-black tracking-tight mb-4">
           <span className="text-white">AI</span>
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600"> Arena</span>
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600"> Wallet</span>
         </h1>
         <p className="text-slate-400 text-lg max-w-2xl mx-auto">
-          Discover, Compare, and Rank the world's best AI models in real-time.
-          Select your fighters below to begin the evaluation.
+          Securely discovered {models.length} available models from your API key.
         </p>
       </motion.div>
 
@@ -109,60 +89,39 @@ export default function Home() {
             <ModelCard
               key={model.id}
               model={model}
-              isSelected={selectedModels.has(model.id)}
-              onToggle={toggleModel}
+              isSelected={activeModel?.id === model.id}
+              onToggle={() => setActiveModel(model)}
             />
           ))}
+
+          {models.length === 0 && (
+            <div className="col-span-full text-center p-12 glass-card rounded-2xl border-dashed border-white/10 text-slate-500">
+              No models found or API key invalid.
+            </div>
+          )}
         </div>
       )}
 
-      {/* Controls Sticky Footer */}
+      <div className="fixed bottom-6 right-6">
+        <button
+          onClick={() => window.location.reload()}
+          className="bg-slate-800 hover:bg-slate-700 text-white p-3 rounded-full shadow-lg transition-colors"
+          title="Disconnect"
+        >
+          <ArrowRight className="rotate-180" size={20} />
+        </button>
+      </div>
+
       <AnimatePresence>
-        {selectedModels.size > 0 && (
-          <motion.div
-            initial={{ y: 100, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: 100, opacity: 0 }}
-            className="fixed bottom-8 left-1/2 -translate-x-1/2 w-full max-w-4xl p-4 md:p-6"
-          >
-            <div className="glass-card rounded-2xl p-4 flex flex-col md:flex-row gap-4 items-center shadow-2xl border-t border-white/10 ring-1 ring-white/5">
-              <div className="flex-1 w-full">
-                <input
-                  type="text"
-                  placeholder="Type a question to test the models (e.g., 'Explain Quantum Computing in 5 words')..."
-                  value={question}
-                  onChange={(e) => setQuestion(e.target.value)}
-                  className="w-full bg-slate-950/50 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all font-medium"
-                />
-              </div>
-              <button
-                onClick={startRound}
-                disabled={!question.trim()}
-                className={cn(
-                  "h-12 px-8 rounded-xl font-bold flex items-center gap-2 transition-all shadow-lg active:scale-95 whitespace-nowrap",
-                  question.trim()
-                    ? "bg-gradient-to-r from-cyan-500 to-blue-600 hover:shadow-cyan-500/25 text-white"
-                    : "bg-slate-800 text-slate-500 cursor-not-allowed"
-                )}
-              >
-                <Swords size={20} />
-                Start Round ({selectedModels.size})
-              </button>
-            </div>
-          </motion.div>
+        {activeModel && (
+          <ChatModal
+            model={activeModel}
+            apiKey={apiKey}
+            provider={provider}
+            onClose={() => setActiveModel(null)}
+          />
         )}
       </AnimatePresence>
-
-      {/* Empty State Helper */}
-      {selectedModels.size === 0 && !loading && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="fixed bottom-10 left-0 w-full text-center pointer-events-none text-slate-500"
-        >
-          Select at least one model to enable the prompt input.
-        </motion.div>
-      )}
     </main>
   );
 }

@@ -46,8 +46,8 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({ onConnect }) => 
                     <div className="relative z-10 space-y-4">
                         <div>
                             <label className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2 block">Provider</label>
-                            <div className="grid grid-cols-2 gap-2 mb-4">
-                                {["OpenAI", "Google"].map((p) => (
+                            <div className="grid grid-cols-2 gap-2 mb-4 max-h-[140px] overflow-y-auto custom-scrollbar">
+                                {["OpenAI", "Google", "OpenRouter", "Groq", "Grok", "Mistral"].map((p) => (
                                     <button
                                         key={p}
                                         onClick={() => setProvider(p)}
