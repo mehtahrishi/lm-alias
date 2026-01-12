@@ -1,0 +1,5 @@
+# --- Frontend (Node/JS) ---
+node_modules/
+dist/
+build/
+.next/
